@@ -1,0 +1,8 @@
+-cp src
+-lib heaps:dev
+-lib hlsdl:dev
+-hl game.hl
+-main Main
+-D multidriver
+# -debug
+# --connect 6000
