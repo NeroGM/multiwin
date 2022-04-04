@@ -6,3 +6,6 @@ processEvents use the onEvent of the correct window.
 
 ### sdl/Window.hx
 Added id and winGetId()
+
+### sdl.c
+Added winGetId binding
