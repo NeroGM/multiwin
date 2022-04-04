@@ -475,12 +475,8 @@ HL_PRIM SDL_Window *HL_NAME(win_create)(int width, int height) {
 	return HL_NAME(win_create_ex)(SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, 0);
 }
 
-static int i = 0;
-static SDL_GLContext *contexts[10];
 HL_PRIM SDL_GLContext *HL_NAME(win_get_glcontext)(SDL_Window *win) {
-	SDL_GLContext* gl = SDL_GL_CreateContext(win);
-	contexts[i++] = gl;
-	return gl;
+	return SDL_GL_CreateContext(win);
 }
 
 HL_PRIM bool HL_NAME(win_set_fullscreen)(SDL_Window *win, int mode) {
