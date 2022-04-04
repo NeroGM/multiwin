@@ -67,7 +67,7 @@ class System {
 		if( !dx.Loop.processEvents(@:privateAccess hxd.Window.inst.onEvent) )
 			return false;
 		#elseif hlsdl
-		if( !sdl.Sdl.processEvents(@:privateAccess hxd.Window.inst.onEvent) )
+		if( !sdl.Sdl.processEvents())
 			return false;
 		#end
 
@@ -75,18 +75,6 @@ class System {
 		timeoutTick();
 		if( loopFunc != null ) loopFunc();
 
-		// present
-		var cur = h3d.Engine.getCurrent();
-		if( cur != null && cur.ready ) {
-			#if hl_profile
-			hl.Profile.event(-1); // pause
-			#end
-			cur.driver.present();
-			#if hl_profile
-			hl.Profile.event(0); // next frame
-			hl.Profile.event(-2); // resume
-			#end
-		}
 		return true;
 	}
 
@@ -114,7 +102,7 @@ class System {
 		#if hlsdl
 			sdl.Sdl.init();
 			@:privateAccess Window.initChars();
-			@:privateAccess Window.inst = new Window(Std.string(hxd.App.wins.length), width, height, fixed); // <--
+			@:privateAccess Window.inst = new Window(title, width, height, fixed);
 			init();
 		#elseif hldx
 			@:privateAccess Window.inst = new Window(title, width, height, fixed);

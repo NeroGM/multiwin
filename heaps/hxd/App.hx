@@ -1,53 +1,74 @@
 package hxd;
 
-private class Win {
-    public var app:App;
-    public function new(app:App) {
-        this.app = app;
-    }
-}
-
 class App implements h3d.IDrawable {
-    public static var wins:Array<Win> = [];
+    public static var apps:Array<App> = [];
+
 	public var engine:h3d.Engine;
     public var s2d:h2d.Scene;
     public var s3d:h3d.scene.Scene;
     public var sevents:hxd.SceneEvents;
 
     public function new() {
-		if (wins.length == 0) {
+		if (apps.length == 0) {
 			hxd.System.start(function() {
-				engine = @:privateAccess new h3d.Engine();
+				@:privateAccess {
+					engine = new h3d.Engine();
+					engine.window.onClose = () -> { engine.window.window.destroy(); apps.remove(this); true; }
+				}
 				engine.onReady = setup;
 				engine.init();
 			});
 		} else {
-			@:privateAccess Window.inst = new hxd.Window(Std.string(hxd.App.wins.length), 800, 600);
-			engine = @:privateAccess new h3d.Engine();
+			@:privateAccess var oldInst = Window.inst;
+			var oldEngine = h3d.Engine.getCurrent();
+
+			@:privateAccess Window.inst.window.renderTo();
+			@:privateAccess {
+				Window.inst = new hxd.Window(Std.string(hxd.App.apps.length), 800, 600);
+				engine = new h3d.Engine();
+				engine.window.onClose = () -> { engine.window.window.destroy(); apps.remove(this); true; }
+			};
 			engine.onReady = setup;
 			engine.init();
+			
+			@:privateAccess Window.inst = oldInst;
+			// @:privateAccess Window.inst.window.renderTo();
+			
+			oldEngine.setCurrent();
 		}
     }
 
+	public static var c:Float = 0;
+	public static var b:Int = 0;
     public static function mainLoop() {
 		hxd.Timer.update();
 
-        for (win in wins) {
-			var app = win.app;
+        for (app in apps) {			
+			app.engine.setCurrent();
 			@:privateAccess {
 				Window.inst = app.engine.window;
-				Window.inst.window.renderTo();
+				@:privateAccess Window.inst.window.renderTo();
 			}
-			app.engine.setCurrent();
             app.sevents.checkEvents();
-            // if( isDisposed ) return;
             app.update(hxd.Timer.dt);
-            // if( isDisposed ) return;
+			@:privateAccess {
+				// app.engine.setCurrent();
+				// Window.inst = app.engine.window;
+				// @:privateAccess Window.inst.window.renderTo(); 
+			}
             var dt = hxd.Timer.dt;
             if( app.s2d != null ) app.s2d.setElapsedTime(dt);
             if( app.s3d != null ) app.s3d.setElapsedTime(dt);
-            app.engine.render(app);
+			
+			app.engine.clear();
+			if (!app.engine.render(app)) throw "??";
+			app.engine.driver.present();
         }
+		// c += hxd.Timer.dt;
+		// if (b < 1 && c > 2) {
+		// 	new Main2();
+		// 	b++;
+		// }
 	}
     
     function init() { }
@@ -98,6 +119,11 @@ class App implements h3d.IDrawable {
 	}
 
     private function setup() {
+		var oEngine = h3d.Engine.getCurrent();
+		var oInstance = @:privateAccess Window.inst;
+		@:privateAccess Window.inst = engine.window;
+		engine.setCurrent();
+
 		var initDone = false;
 		engine.onReady = staticHandler;
 		engine.onContextLost = onContextLost;
@@ -108,19 +134,25 @@ class App implements h3d.IDrawable {
 		};
 		s3d = new h3d.scene.Scene();
 		s2d = new h2d.Scene();
-		sevents = new hxd.SceneEvents();
+		sevents = new hxd.SceneEvents(@:privateAccess engine.window);
 		sevents.addScene(s2d);
 		sevents.addScene(s3d);
 		loadAssets(function() {
 			initDone = true;
 			init();
 			hxd.Timer.skip();
-			if (wins.length == 0) {
+			if (apps.length == 0) {
 				mainLoop();
 				hxd.System.setLoop(mainLoop);
 				hxd.Key.initialize();
 			}
-			wins.push(new Win(this));
+			apps.push(this);
 		});
+
+		@:privateAccess Window.inst.window.renderTo();
+		engine.render(this);
+		engine.driver.present();
+		@:privateAccess Window.inst = oInstance;
+		oEngine.setCurrent();
 	}
 }
