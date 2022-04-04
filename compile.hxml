@@ -4,5 +4,7 @@
 -hl game.hl
 -main Main
 -D multidriver
-# -debug
-# --connect 6000
+-debug
+--connect 6000
+# -D hl-profile
+# -D hl-ver=1.12.0
